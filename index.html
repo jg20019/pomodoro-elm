@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pomodoro</title>
+  <script src="js/main.js"></script>
+  <script>
+      const alarm = new Audio('assets/mixkit-game-success-alert-2039.wav');
+      alarm.loop = true;
+      let canPlay = false;
+
+      alarm.addEventListener('canplaythrough', event=> {
+        console.log('Can play alarm');
+        canPlay = true;
+      });
+
+      function playAlarm() {
+        alarm.play(); 
+      }
+
+      function stopAlarm() {
+        alarm.pause();
+      }
+  </script>
+</head>
+
+<body>
+  <div id="myapp"></div>
+  <script>
+  var app = Elm.Main.init({
+    node: document.getElementById('myapp')
+  });
+  app.ports.playAlarm.subscribe(playAlarm);
+  app.ports.stopAlarm.subscribe(stopAlarm);
+  </script>
+
+</body>
+</html>
