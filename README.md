@@ -1,7 +1,7 @@
 
 # Pomodor Timer in Elm
 
-This project is a simple pomodoro timer written.
+This project is a simple pomodoro timer written in Elm
 
 ## Requirement
 * Elm lang v.0.19.1
