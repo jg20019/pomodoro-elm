@@ -1,5 +1,5 @@
 
-# Pomodor Timer in Elm
+# Pomodoro Timer in Elm
 
 This project is a simple pomodoro timer written in Elm
 
