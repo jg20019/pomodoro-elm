@@ -14,4 +14,13 @@ elm-make src/Timer.elm --output=js/timer.js
 ```
 
 ## Usage
-After building the js, open the index.html in your browser.
+This project uses web workers so you need to have a
+web server to running to serve the files. 
+
+I wrote a small server using Common Lisp to serve 
+the files. Assumming you have sbcl and quicklisp installed. 
+
+Start a repl and quickload hunchentoot. 
+Load the file and run the start function.
+
+Visit localhost:4242 to see the application running

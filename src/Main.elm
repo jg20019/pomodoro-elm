@@ -44,7 +44,7 @@ type alias Model
 
 init_minutes: Int
 init_minutes = 
-    25
+    5
 
 seconds_per_minute : Int
 seconds_per_minute = 

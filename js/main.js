@@ -5151,7 +5151,7 @@ var $author$project$Main$Model = F2(
 var $author$project$Main$Paused = function (a) {
 	return {$: 'Paused', a: a};
 };
-var $author$project$Main$init_minutes = 25;
+var $author$project$Main$init_minutes = 5;
 var $author$project$Main$seconds_per_minute = 60;
 var $author$project$Main$newPausedTimer = $author$project$Main$Paused($author$project$Main$init_minutes * $author$project$Main$seconds_per_minute);
 var $elm$core$Platform$Cmd$batch = _Platform_batch;

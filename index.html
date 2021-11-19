@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Pomodoro</title>
   <script src="js/main.js"></script>
-  <script src="js/timer.js"></script>
   <script>
       const alarm = new Audio('assets/mixkit-game-success-alert-2039.wav');
       alarm.loop = true;
@@ -32,11 +31,14 @@
     const app = Elm.Main.init({
         node: document.getElementById('myapp')
     });
+
     app.ports.playAlarm.subscribe(playAlarm);
     app.ports.stopAlarm.subscribe(stopAlarm);
 
-    const timer = Elm.Timer.init();
-    timer.ports.sendTick.subscribe(result => app.ports.receiveTick.send(""));
+    let worker = new Worker('js/worker.js');
+    worker.onmessage = function(e) {
+      app.ports.receiveTick.send('tick');
+    };
   </script>
 </body>
 </html>
