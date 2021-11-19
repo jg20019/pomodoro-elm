@@ -10,6 +10,7 @@ This project is a simple pomodoro timer written in Elm
 To build the project
 ```$bash
 elm-make src/Main.elm --output=js/main.js 
+elm-make src/Timer.elm --output=js/timer.js
 ```
 
 ## Usage
