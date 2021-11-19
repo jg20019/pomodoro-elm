@@ -2,10 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes as Attributes
 import Html.Events exposing (onClick)
-
-import Time
 
 -- MAIN 
 
@@ -23,6 +20,8 @@ main =
 port playAlarm : String -> Cmd msg
 port stopAlarm : String -> Cmd msg
 
+port receiveTick : (String -> msg) -> Sub msg
+
 
 -- MODEL
 
@@ -38,7 +37,8 @@ type Timer
 
 
 type alias Model 
-    = { timer: Timer 
+    = { timer: Timer
+      , completed: Int
       }
 
 
@@ -61,25 +61,24 @@ newRunningTimer =
 
 init: () -> (Model, Cmd Msg)
 init _ = 
-    -- (Model newPausedTimer, Cmd.none)
-    (Model (Paused 5), Cmd.none)
+    (Model newPausedTimer 0, Cmd.none)
 
 
 -- UPDATE
 
 type Msg 
-    = Tick Time.Posix 
+    = Tick String
     | Start
     | Pause
     | Continue
     | Stop 
-    | StopAlarm
+    | ResetTimer
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         Start ->
-            (startTimer model, stopAlarm "")
+            (startTimer model, Cmd.none)
         Pause ->
             (pauseTimer model, Cmd.none)
         Continue ->
@@ -88,8 +87,8 @@ update msg model =
             (stopTimer model, Cmd.none)
         Tick _ -> 
             tick model
-        StopAlarm ->
-            (model, stopAlarm "")
+        ResetTimer ->
+            resetTimer model
 
 
 startTimer : Model -> Model
@@ -117,7 +116,11 @@ continueTimer model =
 stopTimer : Model -> Model
 stopTimer model = 
     { model | timer = Stopped } 
-   
+  
+resetTimer : Model -> (Model, Cmd Msg)
+resetTimer model =
+    ({ model | timer = newPausedTimer }, stopAlarm "")
+
 tick : Model -> (Model, Cmd Msg)
 tick model = 
     case model.timer of
@@ -139,7 +142,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model = 
     case model.timer of
         Running _ ->
-            Time.every 1000 Tick
+            receiveTick Tick
         _ ->
             Sub.none
 
@@ -149,10 +152,43 @@ subscriptions model =
 view : Model -> Html Msg
 view model = 
     div []
-        [ viewTimer model.timer
-        , viewControls model.timer
-        ]
+        [ viewHeader 
+        , viewCompleted model.completed
+        , viewTimerCard model.timer 
+        ] 
 
+viewHeader : Html Msg
+viewHeader = 
+    header [] [ h1 [] [ text "Pomodoro" ] ]
+
+viewCompleted : Int -> Html Msg
+viewCompleted completed = 
+    let
+        c = "x" ++ (String.fromInt completed)
+    in 
+    span [] [ text c ]
+
+viewTimerCard: Timer -> Html Msg
+viewTimerCard timer = 
+    case timer of
+        Finished -> 
+            viewFinishedTimer
+        _ ->
+            viewRegularTimer timer
+
+viewFinishedTimer :  Html Msg 
+viewFinishedTimer = 
+    div []
+        [ h1 [] [ text "Finished!" ]
+        , button [ onClick ResetTimer ] [ text "Reset" ] 
+        ] 
+
+viewRegularTimer : Timer -> Html Msg
+viewRegularTimer timer = 
+    div []
+        [ viewTimer timer
+        , viewControls timer
+        ]
 
 viewTimer : Timer -> Html Msg
 viewTimer timer = 
@@ -202,17 +238,9 @@ zeroPad n =
 
 viewControls : Timer -> Html Msg
 viewControls timer = 
-    let 
-        stop_alarm_button = case timer of
-            Finished ->
-                stopAlarmButon
-            _ ->
-                text ""
-    in
     div [] 
         [ toggleButton timer 
         , stopButton
-        , stop_alarm_button 
         ]
 
 toggleButton : Timer -> Html Msg
@@ -243,7 +271,3 @@ pauseButton =
 stopButton : Html Msg
 stopButton = 
     button [ onClick Stop ] [ text "Stop" ] 
-
-stopAlarmButon : Html Msg
-stopAlarmButon = 
-    button [ onClick StopAlarm ] [ text "Stop Alarm" ] 
