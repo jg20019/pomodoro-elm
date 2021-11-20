@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Pomodoro</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
   <script src="js/main.js"></script>
   <script>
       const alarm = new Audio('assets/mixkit-game-success-alert-2039.wav');
@@ -26,7 +27,9 @@
 </head>
 
 <body>
-  <div id="myapp"></div>
+  <div id="container"> 
+      <div id="myapp"></div>
+  </div>
   <script>
     const app = Elm.Main.init({
         node: document.getElementById('myapp')

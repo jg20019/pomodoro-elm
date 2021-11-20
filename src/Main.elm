@@ -2,6 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Html exposing (..)
+import Html.Attributes exposing (classList)
 import Html.Events exposing (onClick)
 
 -- MAIN 
@@ -30,8 +31,9 @@ type alias Seconds = Int
 
 
 type Timer 
-    = Paused Seconds
+    = Initial Seconds
     | Running Seconds
+    | Paused Seconds
     | Stopped -- a timer that was stopped prematurely
     | Finished -- a timer that ran until time ran out
 
@@ -44,24 +46,21 @@ type alias Model
 
 init_minutes: Int
 init_minutes = 
-    5
+    25
 
 seconds_per_minute : Int
 seconds_per_minute = 
     60
 
-newPausedTimer : Timer 
-newPausedTimer = 
-    Paused (init_minutes * seconds_per_minute) 
 
-newRunningTimer : Timer
-newRunningTimer = 
-    Running (init_minutes * seconds_per_minute) 
+initialTimer : Timer
+initialTimer = 
+    Initial (init_minutes * seconds_per_minute) 
 
 
 init: () -> (Model, Cmd Msg)
 init _ = 
-    (Model newPausedTimer 0, Cmd.none)
+    (Model initialTimer 0, Cmd.none)
 
 
 -- UPDATE
@@ -93,7 +92,10 @@ update msg model =
 
 startTimer : Model -> Model
 startTimer model = 
-    { model | timer = newRunningTimer }
+    let 
+        s = init_minutes * seconds_per_minute 
+    in
+    { model | timer = Running s }
 
 
 pauseTimer : Model -> Model
@@ -119,7 +121,7 @@ stopTimer model =
   
 resetTimer : Model -> (Model, Cmd Msg)
 resetTimer model =
-    ({ model | timer = newPausedTimer }, stopAlarm "")
+    ({ model | timer = initialTimer }, stopAlarm "")
 
 tick : Model -> (Model, Cmd Msg)
 tick model = 
@@ -151,31 +153,34 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model = 
-    div []
-        [ viewHeader 
-        , viewCompleted model.completed
-        , viewTimerCard model.timer 
+    div [ classList [("timer", True)] ]
+        [ viewTimerCard model.timer 
         ] 
 
-viewHeader : Html Msg
-viewHeader = 
-    header [] [ h1 [] [ text "Pomodoro" ] ]
-
-viewCompleted : Int -> Html Msg
-viewCompleted completed = 
-    let
-        c = "x" ++ (String.fromInt completed)
-    in 
-    span [] [ text c ]
 
 viewTimerCard: Timer -> Html Msg
 viewTimerCard timer = 
     case timer of
         Finished -> 
             viewFinishedTimer
+        Initial _ ->
+            viewInitialTimer timer
         _ ->
             viewRegularTimer timer
 
+viewInitialTimer : Timer -> Html Msg
+viewInitialTimer timer = 
+    div []
+        [ viewTimer timer
+        , viewInitialControls 
+        ]
+
+viewInitialControls : Html Msg
+viewInitialControls = 
+    div [ classList [("controls", True)] ]
+        [ startButton Start ]
+            
+            
 viewFinishedTimer :  Html Msg 
 viewFinishedTimer = 
     div []
@@ -197,9 +202,12 @@ viewTimer timer =
         ]
 
 
+
 timerStr : Timer -> String
 timerStr timer = 
     case timer of
+        Initial s -> 
+            secondsToTimerStr s
         Running s -> 
             secondsToTimerStr s
         Paused s ->
@@ -212,7 +220,7 @@ timerStr timer =
 secondsToTimerStr : Int -> String
 secondsToTimerStr n = 
     let
-        m = String.fromInt (minutes n)
+        m = zeroPad (minutes n)
         s = zeroPad (seconds n)
     in
         m ++ ":" ++ s
@@ -246,6 +254,8 @@ viewControls timer =
 toggleButton : Timer -> Html Msg
 toggleButton timer = 
     case timer of
+        Initial _ ->
+            startButton Start
         Stopped -> 
             startButton Start
         Running _ ->
