@@ -5384,6 +5384,23 @@ var $author$project$Main$viewInitialControls = A2(
 		[
 			$author$project$Main$startButton($author$project$Main$Start)
 		]));
+var $author$project$Main$secondsFromTimer = function (timer) {
+	switch (timer.$) {
+		case 'Initial':
+			var s = timer.a;
+			return s;
+		case 'Running':
+			var s = timer.a;
+			return s;
+		case 'Paused':
+			var s = timer.a;
+			return s;
+		case 'Stopped':
+			return 0;
+		default:
+			return 0;
+	}
+};
 var $author$project$Main$minutes = function (s) {
 	return (s / $author$project$Main$seconds_per_minute) | 0;
 };
@@ -5402,26 +5419,22 @@ var $author$project$Main$secondsToTimerStr = function (n) {
 	return m + (':' + s);
 };
 var $author$project$Main$timerStr = function (timer) {
-	switch (timer.$) {
-		case 'Initial':
-			var s = timer.a;
-			return $author$project$Main$secondsToTimerStr(s);
-		case 'Running':
-			var s = timer.a;
-			return $author$project$Main$secondsToTimerStr(s);
-		case 'Paused':
-			var s = timer.a;
-			return $author$project$Main$secondsToTimerStr(s);
-		case 'Stopped':
-			return '00:00';
-		default:
-			return '00:00';
-	}
+	return $author$project$Main$secondsToTimerStr(
+		$author$project$Main$secondsFromTimer(timer));
 };
 var $author$project$Main$viewTimer = function (timer) {
+	var s = $author$project$Main$secondsFromTimer(timer);
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$classList(
+				_List_fromArray(
+					[
+						_Utils_Tuple2('green', s > 300),
+						_Utils_Tuple2('red', s <= 300)
+					]))
+			]),
 		_List_fromArray(
 			[
 				$elm$html$Html$text(

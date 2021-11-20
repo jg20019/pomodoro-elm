@@ -197,25 +197,37 @@ viewRegularTimer timer =
 
 viewTimer : Timer -> Html Msg
 viewTimer timer = 
-    div [] 
+    let 
+        s = secondsFromTimer timer
+    in
+    div [ classList
+            [ ("green", s > 300)
+            , ("red", s <= 300)
+            ]
+        ]
         [ text (timerStr timer)
         ]
 
 
+secondsFromTimer : Timer -> Int
+secondsFromTimer timer = 
+    case timer of
+        Initial s -> 
+            s
+        Running s -> 
+            s
+        Paused s ->
+            s
+        Stopped ->
+            0
+        Finished ->
+            0
+        
 
 timerStr : Timer -> String
 timerStr timer = 
-    case timer of
-        Initial s -> 
-            secondsToTimerStr s
-        Running s -> 
-            secondsToTimerStr s
-        Paused s ->
-            secondsToTimerStr s
-        Stopped ->
-            "00:00"
-        Finished -> 
-            "00:00"
+    secondsFromTimer timer
+        |> secondsToTimerStr 
 
 secondsToTimerStr : Int -> String
 secondsToTimerStr n = 
