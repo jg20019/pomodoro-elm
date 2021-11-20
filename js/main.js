@@ -5334,29 +5334,46 @@ var $elm$html$Html$Events$onClick = function (msg) {
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$viewFinishedTimer = A2(
-	$elm$html$Html$div,
-	_List_Nil,
-	_List_fromArray(
-		[
-			A2(
-			$elm$html$Html$h1,
-			_List_Nil,
-			_List_fromArray(
-				[
-					$elm$html$Html$text('Finished!')
-				])),
-			A2(
-			$elm$html$Html$button,
-			_List_fromArray(
-				[
-					$elm$html$Html$Events$onClick($author$project$Main$ResetTimer)
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text('Reset')
-				]))
-		]));
+var $author$project$Main$viewFinishedTimer = function (completed) {
+	var c = $elm$core$String$fromInt(completed);
+	var msg = (completed === 1) ? 'You have completed 1 pomodoro.' : ('You have completed ' + (c + ' pomodoros'));
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h1,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(msg)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$classList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2('controls', true)
+							]))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$ResetTimer)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Reset')
+							]))
+					]))
+			]));
+};
 var $author$project$Main$Start = {$: 'Start'};
 var $author$project$Main$startButton = function (msg) {
 	return A2(
@@ -5501,14 +5518,21 @@ var $author$project$Main$toggleButton = function (timer) {
 var $author$project$Main$viewControls = function (timer) {
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$classList(
+				_List_fromArray(
+					[
+						_Utils_Tuple2('controls', true)
+					]))
+			]),
 		_List_fromArray(
 			[
 				$author$project$Main$toggleButton(timer),
 				$author$project$Main$stopButton
 			]));
 };
-var $author$project$Main$viewRegularTimer = function (timer) {
+var $author$project$Main$viewRunningTimer = function (timer) {
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
@@ -5518,14 +5542,15 @@ var $author$project$Main$viewRegularTimer = function (timer) {
 				$author$project$Main$viewControls(timer)
 			]));
 };
-var $author$project$Main$viewTimerCard = function (timer) {
-	switch (timer.$) {
+var $author$project$Main$viewTimerCard = function (model) {
+	var _v0 = model.timer;
+	switch (_v0.$) {
 		case 'Finished':
-			return $author$project$Main$viewFinishedTimer;
+			return $author$project$Main$viewFinishedTimer(model.completed);
 		case 'Initial':
-			return $author$project$Main$viewInitialTimer(timer);
+			return $author$project$Main$viewInitialTimer(model.timer);
 		default:
-			return $author$project$Main$viewRegularTimer(timer);
+			return $author$project$Main$viewRunningTimer(model.timer);
 	}
 };
 var $author$project$Main$view = function (model) {
@@ -5541,7 +5566,7 @@ var $author$project$Main$view = function (model) {
 			]),
 		_List_fromArray(
 			[
-				$author$project$Main$viewTimerCard(model.timer)
+				$author$project$Main$viewTimerCard(model)
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
