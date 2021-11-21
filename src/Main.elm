@@ -70,6 +70,25 @@ initialTimer =
     Initial (init_minutes * seconds_per_minute)
 
 
+secondsFromTimer : Timer -> Int
+secondsFromTimer timer =
+    case timer of
+        Initial s ->
+            s
+
+        Running s ->
+            s
+
+        Paused s ->
+            s
+
+        Stopped ->
+            0
+
+        Finished ->
+            0
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model initialTimer 0, Cmd.none )
@@ -112,11 +131,7 @@ update msg model =
 
 startTimer : Model -> Model
 startTimer model =
-    let
-        s =
-            init_minutes * seconds_per_minute
-    in
-    { model | timer = Running s }
+    { model | timer = Running (secondsFromTimer model.timer) }
 
 
 pauseTimer : Model -> Model
@@ -146,7 +161,7 @@ stopTimer model =
 
 resetTimer : Model -> ( Model, Cmd Msg )
 resetTimer model =
-    ( { model | timer = initialTimer }, stopAlarm "" )
+    ( { model | timer = initialTimer, completed = model.completed + 1 }, stopAlarm "" )
 
 
 tick : Model -> ( Model, Cmd Msg )
@@ -231,10 +246,10 @@ viewFinishedTimer : Int -> Html Msg
 viewFinishedTimer completed =
     let
         c =
-            String.fromInt completed
+            String.fromInt <| completed + 1
 
         msg =
-            if completed == 1 then
+            if completed + 1 == 1 then
                 "You have completed 1 pomodoro."
 
             else
@@ -263,23 +278,6 @@ viewTimer timer =
         ]
 
 
-secondsFromTimer : Timer -> Int
-secondsFromTimer timer =
-    case timer of
-        Initial s ->
-            s
-
-        Running s ->
-            s
-
-        Paused s ->
-            s
-
-        Stopped ->
-            0
-
-        Finished ->
-            0
 
 
 timerStr : Timer -> String
