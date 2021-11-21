@@ -5214,15 +5214,32 @@ var $author$project$Main$resetTimer = function (model) {
 	return _Utils_Tuple2(
 		_Utils_update(
 			model,
-			{timer: $author$project$Main$initialTimer}),
+			{completed: model.completed + 1, timer: $author$project$Main$initialTimer}),
 		$author$project$Main$stopAlarm(''));
 };
+var $author$project$Main$secondsFromTimer = function (timer) {
+	switch (timer.$) {
+		case 'Initial':
+			var s = timer.a;
+			return s;
+		case 'Running':
+			var s = timer.a;
+			return s;
+		case 'Paused':
+			var s = timer.a;
+			return s;
+		case 'Stopped':
+			return 0;
+		default:
+			return 0;
+	}
+};
 var $author$project$Main$startTimer = function (model) {
-	var s = $author$project$Main$init_minutes * $author$project$Main$seconds_per_minute;
 	return _Utils_update(
 		model,
 		{
-			timer: $author$project$Main$Running(s)
+			timer: $author$project$Main$Running(
+				$author$project$Main$secondsFromTimer(model.timer))
 		});
 };
 var $author$project$Main$Stopped = {$: 'Stopped'};
@@ -5335,8 +5352,8 @@ var $elm$html$Html$Events$onClick = function (msg) {
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Main$viewFinishedTimer = function (completed) {
-	var c = $elm$core$String$fromInt(completed);
-	var msg = (completed === 1) ? 'You have completed 1 pomodoro.' : ('You have completed ' + (c + ' pomodoros'));
+	var c = $elm$core$String$fromInt(completed + 1);
+	var msg = ((completed + 1) === 1) ? 'You have completed 1 pomodoro.' : ('You have completed ' + (c + ' pomodoros'));
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
@@ -5401,23 +5418,6 @@ var $author$project$Main$viewInitialControls = A2(
 		[
 			$author$project$Main$startButton($author$project$Main$Start)
 		]));
-var $author$project$Main$secondsFromTimer = function (timer) {
-	switch (timer.$) {
-		case 'Initial':
-			var s = timer.a;
-			return s;
-		case 'Running':
-			var s = timer.a;
-			return s;
-		case 'Paused':
-			var s = timer.a;
-			return s;
-		case 'Stopped':
-			return 0;
-		default:
-			return 0;
-	}
-};
 var $author$project$Main$minutes = function (s) {
 	return (s / $author$project$Main$seconds_per_minute) | 0;
 };
