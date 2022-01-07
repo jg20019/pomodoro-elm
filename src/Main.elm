@@ -1,9 +1,10 @@
 port module Main exposing (..)
 
 import Browser
+import Json.Decode as Decode
 import Html exposing (..)
-import Html.Attributes exposing (classList)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (classList, style)
+import Html.Events exposing (on, onClick, onMouseUp, onMouseOut)
 
 
 
@@ -44,11 +45,18 @@ type Timer
     | Running Seconds
     | Paused Seconds
 
+type alias Pos = 
+    { x : Int
+    , y : Int
+    }
 
 type alias Model =
     { timer : Timer
     , completed : Int
     , alarmRunning : Bool
+    , top: Int
+    , left: Int
+    , drag: Maybe Pos
     }
 
 
@@ -82,7 +90,7 @@ secondsFromTimer timer =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model initialTimer 0 False, Cmd.none )
+    ( Model initialTimer 0 False 20 20 Nothing, Cmd.none )
 
 
 
@@ -95,6 +103,9 @@ type Msg
     | Continue
     | Stop
     | ResetTimer
+    | MouseDown Int Int
+    | MouseMove Int Int
+    | MouseUp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -115,6 +126,18 @@ update msg model =
         ResetTimer ->
             resetTimer model
 
+        MouseMove x y -> 
+            case model.drag of
+                Nothing -> 
+                    (model, Cmd.none)
+                Just pos -> 
+                    (drag model pos x y, Cmd.none)
+
+        MouseDown x y -> 
+            (startDrag model x y, Cmd.none)
+
+        MouseUp -> 
+            (stopDrag model, Cmd.none)
 
 startTimer : Model -> Model
 startTimer model =
@@ -163,7 +186,27 @@ tick model =
         _ ->
             ( model, Cmd.none )
 
+startDrag : Model -> Int -> Int -> Model 
+startDrag model x y = 
+    let 
+        pos = Pos x y
+    in 
+    { model | drag = Just pos } 
 
+drag : Model -> Pos -> Int -> Int -> Model 
+drag model dragStart x y = 
+    let 
+       dx = dragStart.x - x
+       dy = dragStart.y - y
+       left = model.left - dx
+       top = model.top - dy 
+       pos = Just (Pos left top)
+    in 
+    { model | left = left, top = top, drag = pos } 
+
+stopDrag : Model -> Model
+stopDrag model  = 
+    { model | drag = Nothing } 
 
 -- SUBSCRIPTIONS
 
@@ -181,10 +224,29 @@ subscriptions model =
 
 -- VIEW
 
-
 view : Model -> Html Msg
-view model =
-    div [ classList [ ("timer", True) ] ]
+view model = 
+    div [ style "top" "0px"
+        , style "left" "0px"
+        , style "position" "relative" 
+        , style "width" "100%"
+        , style "height" "100%"
+        , style "background-color" "grey"
+        , onMouseMove MouseMove 
+        , onMouseUp MouseUp
+        ]
+        [ viewTimerWidget model
+        ]
+
+viewTimerWidget : Model -> Html Msg
+viewTimerWidget model =
+    div [ classList [ ("timer", True) ]
+        , style "top" (px model.top)
+        , style "left" (px model.left)
+        , style "position" "absolute"
+        , onMouseDown MouseDown
+        , onMouseUp MouseUp
+        ]
         [ viewCompleted model.completed
         , viewTimer model.timer
         , viewControls model
@@ -303,3 +365,23 @@ stopButton =
 resetButton : Html Msg
 resetButton =
     button [ onClick ResetTimer ] [ text "Reset" ]
+
+-- Attributes Helpers
+px : Int -> String
+px pixels = 
+    (String.fromInt pixels) ++ "px"
+
+-- Events 
+posDecoder : (Int -> Int -> msg) -> Decode.Decoder msg
+posDecoder message = 
+    Decode.map2 message
+       (Decode.field "x" Decode.int)
+       (Decode.field "y" Decode.int)
+
+onMouseMove : (Int -> Int -> msg) -> Attribute msg
+onMouseMove message = 
+    on "mousemove" (posDecoder message)
+
+onMouseDown : (Int -> Int -> msg) -> Attribute msg
+onMouseDown message = 
+    on "mousedown" (posDecoder message)
