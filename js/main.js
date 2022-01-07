@@ -10724,6 +10724,7 @@ var $author$project$Main$MouseMove = F2(
 	function (a, b) {
 		return {$: 'MouseMove', a: a, b: b};
 	});
+var $author$project$Main$MouseUp = {$: 'MouseUp'};
 var $author$project$Main$posDecoder = function (message) {
 	return A3(
 		$elm$json$Json$Decode$map2,
@@ -10741,7 +10742,6 @@ var $author$project$Main$MouseDown = F2(
 	function (a, b) {
 		return {$: 'MouseDown', a: a, b: b};
 	});
-var $author$project$Main$MouseUp = {$: 'MouseUp'};
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -10763,11 +10763,27 @@ var $elm$html$Html$Attributes$classList = function (classes) {
 				$elm$core$Tuple$first,
 				A2($elm$core$List$filter, $elm$core$Tuple$second, classes))));
 };
+var $author$project$Main$alwaysPreventDefault = function (msg) {
+	return _Utils_Tuple2(msg, true);
+};
+var $elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
+	return {$: 'MayPreventDefault', a: a};
+};
+var $elm$html$Html$Events$preventDefaultOn = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayPreventDefault(decoder));
+	});
 var $author$project$Main$onMouseDown = function (message) {
 	return A2(
-		$elm$html$Html$Events$on,
+		$elm$html$Html$Events$preventDefaultOn,
 		'mousedown',
-		$author$project$Main$posDecoder(message));
+		A2(
+			$elm$json$Json$Decode$map,
+			$author$project$Main$alwaysPreventDefault,
+			$author$project$Main$posDecoder(message)));
 };
 var $author$project$Main$px = function (pixels) {
 	return $elm$core$String$fromInt(pixels) + 'px';
@@ -10937,7 +10953,8 @@ var $author$project$Main$view = function (model) {
 				A2($elm$html$Html$Attributes$style, 'width', '100%'),
 				A2($elm$html$Html$Attributes$style, 'height', '100%'),
 				A2($elm$html$Html$Attributes$style, 'background-color', 'grey'),
-				$author$project$Main$onMouseMove($author$project$Main$MouseMove)
+				$author$project$Main$onMouseMove($author$project$Main$MouseMove),
+				$elm$html$Html$Events$onMouseUp($author$project$Main$MouseUp)
 			]),
 		_List_fromArray(
 			[

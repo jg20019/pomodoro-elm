@@ -4,7 +4,7 @@ import Browser
 import Json.Decode as Decode
 import Html exposing (..)
 import Html.Attributes exposing (classList, style)
-import Html.Events exposing (on, onClick, onMouseUp, onMouseOut)
+import Html.Events exposing (on, preventDefaultOn, onClick, onMouseUp, onMouseOut)
 
 
 
@@ -384,4 +384,8 @@ onMouseMove message =
 
 onMouseDown : (Int -> Int -> msg) -> Attribute msg
 onMouseDown message = 
-    on "mousedown" (posDecoder message)
+    preventDefaultOn "mousedown" (Decode.map alwaysPreventDefault (posDecoder message))
+
+alwaysPreventDefault : msg -> (msg, Bool)
+alwaysPreventDefault msg = 
+    (msg, True)
