@@ -5144,9 +5144,9 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Main$Model = F2(
-	function (timer, completed) {
-		return {completed: completed, timer: timer};
+var $author$project$Main$Model = F3(
+	function (timer, completed, alarmRunning) {
+		return {alarmRunning: alarmRunning, completed: completed, timer: timer};
 	});
 var $author$project$Main$Initial = function (a) {
 	return {$: 'Initial', a: a};
@@ -5158,7 +5158,7 @@ var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
-		A2($author$project$Main$Model, $author$project$Main$initialTimer, 0),
+		A3($author$project$Main$Model, $author$project$Main$initialTimer, 0, false),
 		$elm$core$Platform$Cmd$none);
 };
 var $author$project$Main$Tick = function (a) {
@@ -5192,10 +5192,40 @@ var $author$project$Main$continueTimer = function (model) {
 		return model;
 	}
 };
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Main$stopAlarm = _Platform_outgoingPort('stopAlarm', $elm$json$Json$Encode$string);
+var $author$project$Main$resetTimer = function (model) {
+	return _Utils_Tuple2(
+		_Utils_update(
+			model,
+			{alarmRunning: false, timer: $author$project$Main$initialTimer}),
+		$author$project$Main$stopAlarm(''));
+};
+var $author$project$Main$secondsFromTimer = function (timer) {
+	switch (timer.$) {
+		case 'Initial':
+			var s = timer.a;
+			return s;
+		case 'Running':
+			var s = timer.a;
+			return s;
+		default:
+			var s = timer.a;
+			return s;
+	}
+};
+var $author$project$Main$startTimer = function (model) {
+	return _Utils_update(
+		model,
+		{
+			timer: $author$project$Main$Running(
+				$author$project$Main$secondsFromTimer(model.timer))
+		});
+};
 var $author$project$Main$Paused = function (a) {
 	return {$: 'Paused', a: a};
 };
-var $author$project$Main$pauseTimer = function (model) {
+var $author$project$Main$stopTimer = function (model) {
 	var _v0 = model.timer;
 	if (_v0.$ === 'Running') {
 		var s = _v0.a;
@@ -5208,47 +5238,6 @@ var $author$project$Main$pauseTimer = function (model) {
 		return model;
 	}
 };
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Main$stopAlarm = _Platform_outgoingPort('stopAlarm', $elm$json$Json$Encode$string);
-var $author$project$Main$resetTimer = function (model) {
-	return _Utils_Tuple2(
-		_Utils_update(
-			model,
-			{completed: model.completed + 1, timer: $author$project$Main$initialTimer}),
-		$author$project$Main$stopAlarm(''));
-};
-var $author$project$Main$secondsFromTimer = function (timer) {
-	switch (timer.$) {
-		case 'Initial':
-			var s = timer.a;
-			return s;
-		case 'Running':
-			var s = timer.a;
-			return s;
-		case 'Paused':
-			var s = timer.a;
-			return s;
-		case 'Stopped':
-			return 0;
-		default:
-			return 0;
-	}
-};
-var $author$project$Main$startTimer = function (model) {
-	return _Utils_update(
-		model,
-		{
-			timer: $author$project$Main$Running(
-				$author$project$Main$secondsFromTimer(model.timer))
-		});
-};
-var $author$project$Main$Stopped = {$: 'Stopped'};
-var $author$project$Main$stopTimer = function (model) {
-	return _Utils_update(
-		model,
-		{timer: $author$project$Main$Stopped});
-};
-var $author$project$Main$Finished = {$: 'Finished'};
 var $author$project$Main$playAlarm = _Platform_outgoingPort('playAlarm', $elm$json$Json$Encode$string);
 var $author$project$Main$tick = function (model) {
 	var _v0 = model.timer;
@@ -5258,7 +5247,7 @@ var $author$project$Main$tick = function (model) {
 		return (!remaining_seconds) ? _Utils_Tuple2(
 			_Utils_update(
 				model,
-				{timer: $author$project$Main$Finished}),
+				{alarmRunning: true, completed: model.completed + 1, timer: $author$project$Main$initialTimer}),
 			$author$project$Main$playAlarm('')) : _Utils_Tuple2(
 			_Utils_update(
 				model,
@@ -5276,10 +5265,6 @@ var $author$project$Main$update = F2(
 			case 'Start':
 				return _Utils_Tuple2(
 					$author$project$Main$startTimer(model),
-					$elm$core$Platform$Cmd$none);
-			case 'Pause':
-				return _Utils_Tuple2(
-					$author$project$Main$pauseTimer(model),
 					$elm$core$Platform$Cmd$none);
 			case 'Continue':
 				return _Utils_Tuple2(
@@ -5329,9 +5314,23 @@ var $elm$html$Html$Attributes$classList = function (classes) {
 				A2($elm$core$List$filter, $elm$core$Tuple$second, classes))));
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$viewCompleted = function (completed) {
+	return A2(
+		$elm$html$Html$span,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text(
+				'Completed: ' + $elm$core$String$fromInt(completed))
+			]));
+};
+var $author$project$Main$Continue = {$: 'Continue'};
+var $author$project$Main$Start = {$: 'Start'};
 var $author$project$Main$ResetTimer = {$: 'ResetTimer'};
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -5349,49 +5348,16 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$viewFinishedTimer = function (completed) {
-	var c = $elm$core$String$fromInt(completed + 1);
-	var msg = ((completed + 1) === 1) ? 'You have completed 1 pomodoro.' : ('You have completed ' + (c + ' pomodoros'));
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h1,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text(msg)
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$classList(
-						_List_fromArray(
-							[
-								_Utils_Tuple2('controls', true)
-							]))
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Events$onClick($author$project$Main$ResetTimer)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Reset')
-							]))
-					]))
-			]));
-};
-var $author$project$Main$Start = {$: 'Start'};
+var $author$project$Main$okButton = A2(
+	$elm$html$Html$button,
+	_List_fromArray(
+		[
+			$elm$html$Html$Events$onClick($author$project$Main$ResetTimer)
+		]),
+	_List_fromArray(
+		[
+			$elm$html$Html$text('Ok')
+		]));
 var $author$project$Main$startButton = function (msg) {
 	return A2(
 		$elm$html$Html$button,
@@ -5404,20 +5370,56 @@ var $author$project$Main$startButton = function (msg) {
 				$elm$html$Html$text('Start')
 			]));
 };
-var $author$project$Main$viewInitialControls = A2(
-	$elm$html$Html$div,
+var $author$project$Main$Stop = {$: 'Stop'};
+var $author$project$Main$stopButton = A2(
+	$elm$html$Html$button,
 	_List_fromArray(
 		[
-			$elm$html$Html$Attributes$classList(
-			_List_fromArray(
-				[
-					_Utils_Tuple2('controls', true)
-				]))
+			$elm$html$Html$Events$onClick($author$project$Main$Stop)
 		]),
 	_List_fromArray(
 		[
-			$author$project$Main$startButton($author$project$Main$Start)
+			$elm$html$Html$text('Stop')
 		]));
+var $author$project$Main$mainButton = function (model) {
+	var _v0 = model.timer;
+	switch (_v0.$) {
+		case 'Initial':
+			return model.alarmRunning ? $author$project$Main$okButton : $author$project$Main$startButton($author$project$Main$Start);
+		case 'Running':
+			return $author$project$Main$stopButton;
+		default:
+			return $author$project$Main$startButton($author$project$Main$Continue);
+	}
+};
+var $author$project$Main$resetButton = A2(
+	$elm$html$Html$button,
+	_List_fromArray(
+		[
+			$elm$html$Html$Events$onClick($author$project$Main$ResetTimer)
+		]),
+	_List_fromArray(
+		[
+			$elm$html$Html$text('Reset')
+		]));
+var $author$project$Main$viewControls = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$classList(
+				_List_fromArray(
+					[
+						_Utils_Tuple2('controls', true)
+					]))
+			]),
+		_List_fromArray(
+			[
+				$author$project$Main$mainButton(model),
+				$author$project$Main$resetButton
+			]));
+};
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $author$project$Main$minutes = function (s) {
 	return (s / $author$project$Main$seconds_per_minute) | 0;
 };
@@ -5442,7 +5444,7 @@ var $author$project$Main$timerStr = function (timer) {
 var $author$project$Main$viewTimer = function (timer) {
 	var s = $author$project$Main$secondsFromTimer(timer);
 	return A2(
-		$elm$html$Html$div,
+		$elm$html$Html$h1,
 		_List_fromArray(
 			[
 				$elm$html$Html$Attributes$classList(
@@ -5458,101 +5460,6 @@ var $author$project$Main$viewTimer = function (timer) {
 				$author$project$Main$timerStr(timer))
 			]));
 };
-var $author$project$Main$viewInitialTimer = function (timer) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				$author$project$Main$viewTimer(timer),
-				$author$project$Main$viewInitialControls
-			]));
-};
-var $author$project$Main$Stop = {$: 'Stop'};
-var $author$project$Main$stopButton = A2(
-	$elm$html$Html$button,
-	_List_fromArray(
-		[
-			$elm$html$Html$Events$onClick($author$project$Main$Stop)
-		]),
-	_List_fromArray(
-		[
-			$elm$html$Html$text('Stop')
-		]));
-var $author$project$Main$Continue = {$: 'Continue'};
-var $author$project$Main$Pause = {$: 'Pause'};
-var $author$project$Main$pauseButton = A2(
-	$elm$html$Html$button,
-	_List_fromArray(
-		[
-			$elm$html$Html$Events$onClick($author$project$Main$Pause)
-		]),
-	_List_fromArray(
-		[
-			$elm$html$Html$text('Pause')
-		]));
-var $author$project$Main$restartButton = A2(
-	$elm$html$Html$button,
-	_List_fromArray(
-		[
-			$elm$html$Html$Events$onClick($author$project$Main$Start)
-		]),
-	_List_fromArray(
-		[
-			$elm$html$Html$text('Restart')
-		]));
-var $author$project$Main$toggleButton = function (timer) {
-	switch (timer.$) {
-		case 'Initial':
-			return $author$project$Main$startButton($author$project$Main$Start);
-		case 'Stopped':
-			return $author$project$Main$startButton($author$project$Main$Start);
-		case 'Running':
-			return $author$project$Main$pauseButton;
-		case 'Paused':
-			return $author$project$Main$startButton($author$project$Main$Continue);
-		default:
-			return $author$project$Main$restartButton;
-	}
-};
-var $author$project$Main$viewControls = function (timer) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$classList(
-				_List_fromArray(
-					[
-						_Utils_Tuple2('controls', true)
-					]))
-			]),
-		_List_fromArray(
-			[
-				$author$project$Main$toggleButton(timer),
-				$author$project$Main$stopButton
-			]));
-};
-var $author$project$Main$viewRunningTimer = function (timer) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				$author$project$Main$viewTimer(timer),
-				$author$project$Main$viewControls(timer)
-			]));
-};
-var $author$project$Main$viewTimerCard = function (model) {
-	var _v0 = model.timer;
-	switch (_v0.$) {
-		case 'Finished':
-			return $author$project$Main$viewFinishedTimer(model.completed);
-		case 'Initial':
-			return $author$project$Main$viewInitialTimer(model.timer);
-		default:
-			return $author$project$Main$viewRunningTimer(model.timer);
-	}
-};
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -5566,7 +5473,9 @@ var $author$project$Main$view = function (model) {
 			]),
 		_List_fromArray(
 			[
-				$author$project$Main$viewTimerCard(model)
+				$author$project$Main$viewCompleted(model.completed),
+				$author$project$Main$viewTimer(model.timer),
+				$author$project$Main$viewControls(model)
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(

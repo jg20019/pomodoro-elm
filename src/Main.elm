@@ -19,8 +19,6 @@ main =
         , subscriptions = subscriptions
         }
 
-
-
 -- PORTS
 
 
@@ -45,13 +43,12 @@ type Timer
     = Initial Seconds
     | Running Seconds
     | Paused Seconds
-    | Stopped -- a timer that was stopped prematurely
-    | Finished -- a timer that ran until time ran out
 
 
 type alias Model =
     { timer : Timer
     , completed : Int
+    , alarmRunning : Bool
     }
 
 
@@ -82,16 +79,10 @@ secondsFromTimer timer =
         Paused s ->
             s
 
-        Stopped ->
-            0
-
-        Finished ->
-            0
-
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model initialTimer 0, Cmd.none )
+    ( Model initialTimer 0 False, Cmd.none )
 
 
 
@@ -101,7 +92,6 @@ init _ =
 type Msg
     = Tick String
     | Start
-    | Pause
     | Continue
     | Stop
     | ResetTimer
@@ -112,9 +102,6 @@ update msg model =
     case msg of
         Start ->
             ( startTimer model, Cmd.none )
-
-        Pause ->
-            ( pauseTimer model, Cmd.none )
 
         Continue ->
             ( continueTimer model, Cmd.none )
@@ -134,8 +121,8 @@ startTimer model =
     { model | timer = Running (secondsFromTimer model.timer) }
 
 
-pauseTimer : Model -> Model
-pauseTimer model =
+stopTimer : Model -> Model
+stopTimer model =
     case model.timer of
         Running s ->
             { model | timer = Paused s }
@@ -154,14 +141,9 @@ continueTimer model =
             model
 
 
-stopTimer : Model -> Model
-stopTimer model =
-    { model | timer = Stopped }
-
-
 resetTimer : Model -> ( Model, Cmd Msg )
 resetTimer model =
-    ( { model | timer = initialTimer, completed = model.completed + 1 }, stopAlarm "" )
+    ( { model | timer = initialTimer, alarmRunning = False }, stopAlarm "" )
 
 
 tick : Model -> ( Model, Cmd Msg )
@@ -173,7 +155,7 @@ tick model =
                     max 0 (s - 1)
             in
             if remaining_seconds == 0 then
-                ( { model | timer = Finished }, playAlarm "" )
+                ( { model | timer = initialTimer, completed = model.completed + 1, alarmRunning = True }, playAlarm "" )
 
             else
                 ( { model | timer = Running remaining_seconds }, Cmd.none )
@@ -202,65 +184,15 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ classList [ ( "timer", True ) ] ]
-        [ viewTimerCard model
+    div [ classList [ ("timer", True) ] ]
+        [ viewCompleted model.completed
+        , viewTimer model.timer
+        , viewControls model
         ]
 
-
-viewTimerCard : Model -> Html Msg
-viewTimerCard model =
-    case model.timer of
-        Finished ->
-            viewFinishedTimer model.completed
-
-        Initial _ ->
-            viewInitialTimer model.timer
-
-        _ ->
-            viewRunningTimer model.timer
-
-
-viewInitialTimer : Timer -> Html Msg
-viewInitialTimer timer =
-    div []
-        [ viewTimer timer
-        , viewInitialControls
-        ]
-
-
-viewInitialControls : Html Msg
-viewInitialControls =
-    div [ classList [ ( "controls", True ) ] ]
-        [ startButton Start ]
-
-
-viewRunningTimer : Timer -> Html Msg
-viewRunningTimer timer =
-    div []
-        [ viewTimer timer
-        , viewControls timer
-        ]
-
-
-viewFinishedTimer : Int -> Html Msg
-viewFinishedTimer completed =
-    let
-        c =
-            String.fromInt <| completed + 1
-
-        msg =
-            if completed + 1 == 1 then
-                "You have completed 1 pomodoro."
-
-            else
-                "You have completed " ++ c ++ " pomodoros"
-    in
-    div []
-        [ h1 [] [ text msg ]
-        , div [ classList [ ( "controls", True ) ] ]
-            [ button [ onClick ResetTimer ] [ text "Reset" ] ]
-        ]
-
+viewCompleted : Int -> Html Msg
+viewCompleted completed = 
+    span [] [ text ("Completed: " ++ String.fromInt completed ) ]
 
 viewTimer : Timer -> Html Msg
 viewTimer timer =
@@ -268,7 +200,7 @@ viewTimer timer =
         s =
             secondsFromTimer timer
     in
-    div
+    h1
         [ classList
             [ ( "green", s > 300 )
             , ( "red", s <= 300 )
@@ -276,8 +208,6 @@ viewTimer timer =
         ]
         [ text (timerStr timer)
         ]
-
-
 
 
 timerStr : Timer -> String
@@ -329,52 +259,47 @@ zeroPad n =
         String.fromInt n
 
 
-viewControls : Timer -> Html Msg
-viewControls timer =
+viewControls : Model -> Html Msg
+viewControls model =
     div
         [ classList
             [ ( "controls", True )
             ]
         ]
-        [ toggleButton timer
-        , stopButton
+        [ mainButton model
+        , resetButton
         ]
 
 
-toggleButton : Timer -> Html Msg
-toggleButton timer =
-    case timer of
+mainButton : Model -> Html Msg
+mainButton model =
+    case model.timer of
         Initial _ ->
-            startButton Start
-
-        Stopped ->
-            startButton Start
+            if model.alarmRunning then
+                okButton 
+            else
+                startButton Start
 
         Running _ ->
-            pauseButton
+            stopButton
 
         Paused _ ->
             startButton Continue
-
-        Finished ->
-            restartButton
 
 
 startButton : Msg -> Html Msg
 startButton msg =
     button [ onClick msg ] [ text "Start" ]
 
-
-restartButton : Html Msg
-restartButton =
-    button [ onClick Start ] [ text "Restart" ]
-
-
-pauseButton : Html Msg
-pauseButton =
-    button [ onClick Pause ] [ text "Pause" ]
-
+-- button to stop the alarm
+okButton : Html Msg 
+okButton = 
+    button [ onClick ResetTimer ] [ text "Ok" ] 
 
 stopButton : Html Msg
 stopButton =
     button [ onClick Stop ] [ text "Stop" ]
+
+resetButton : Html Msg
+resetButton =
+    button [ onClick ResetTimer ] [ text "Reset" ]

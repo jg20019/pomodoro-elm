@@ -6,5 +6,3 @@
 
 (defun start ()
   (hunchentoot:start *acceptor*))
-
-(start)
